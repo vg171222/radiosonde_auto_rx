@@ -441,6 +441,7 @@ def read_auto_rx_config(filename, no_sdr_test=False):
         # Default to experimental decoders on for FSK/GFSK sondes...
         auto_rx_config["experimental_decoders"] = {
             "RS41": True,
+            "RS41D": False,
             "RS92": True,
             "DFM": True,
             "M10": True,

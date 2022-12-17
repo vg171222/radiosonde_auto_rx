@@ -4,6 +4,7 @@
 #
 #   Copyright (C) 2018 Philip Heron <phil@sanslogic.co.uk>
 #   Released under GNU GPL v3 or later
+#   modified by vg171222
 
 import datetime
 import logging
@@ -149,16 +150,20 @@ class EmailNotification(object):
                         if telemetry["encrypted"] == True:
                             msg += "ENCRYPTED RADIOSONDE DETECTED!\n"
 
+                    if "RS41-D" in telemetry:
+                        msg += "RS41-D RADIOSONDE DETECTED!\n"
+
                     msg += "Callsign:  %s\n" % _id
                     msg += "Type:      %s\n" % telemetry["type"]
                     msg += "Frequency: %s\n" % telemetry["freq"]
-                    msg += "Position:  %.5f,%.5f\n" % (
-                        telemetry["lat"],
-                        telemetry["lon"],
-                    )
-                    msg += "Altitude:  %d m\n" % round(telemetry["alt"])
+                    if (not 'RS41-D' in telemetry):
+                        msg += "Position:  %.5f,%.5f\n" % (
+                            telemetry["lat"],
+                            telemetry["lon"],
+                        )
+                        msg += "Altitude:  %d m\n" % round(telemetry["alt"])
 
-                    if self.station_position != None:
+                    if self.station_position != None and not 'RS41-D' in telemetry:
                         _relative_position = position_info(
                             self.station_position,
                             (telemetry["lat"], telemetry["lon"], telemetry["alt"]),
@@ -184,91 +189,95 @@ class EmailNotification(object):
                         if telemetry["encrypted"] == True:
                             _subject += " - ENCRYPTED SONDE"
 
+                    if "RS41-D" in telemetry:
+                        _subject += " - RS41-D SONDE "
+
                     self.send_notification_email(subject=_subject, message=msg)
 
                 except Exception as e:
                     self.log_error("Error sending E-mail - %s" % str(e))
 
         else:
-            # Update track data.
-            _sonde_state = self.sondes[_id]["track"].add_telemetry(
-                {
-                    "time": telemetry["datetime_dt"],
-                    "lat": telemetry["lat"],
-                    "lon": telemetry["lon"],
-                    "alt": telemetry["alt"],
-                }
-            )
-            # Update last seen time, so we know when to clean out this sondes data from memory.
-            self.sondes[_id]["last_time"] = time.time()
+            if "RS41-D" not in telemetry:
+                # Update track data.
+                _sonde_state = self.sondes[_id]["track"].add_telemetry(
+                    {
+                        "time": telemetry["datetime_dt"],
+                        "lat": telemetry["lat"],
+                        "lon": telemetry["lon"],
+                        "alt": telemetry["alt"],
+                    }
+                )
+                # Update last seen time, so we know when to clean out this sondes data from memory.
+                self.sondes[_id]["last_time"] = time.time()
 
-            # We have seen this sonde recently. Let's check it's descending...
+                # We have seen this sonde recently. Let's check it's descending...
 
-            if self.sondes[_id]["descent_notified"] == False and _sonde_state:
-                # If the sonde is below our threshold altitude, *and* is descending at a reasonable rate, increment.
-                if (telemetry["alt"] < self.landing_altitude_threshold) and (
-                    _sonde_state["ascent_rate"] < -2.0
-                ):
-                    self.sondes[_id]["descending_trip"] += 1
+                if self.sondes[_id]["descent_notified"] == False and _sonde_state:
+                    # If the sonde is below our threshold altitude, *and* is descending at a reasonable rate, increment.
+                    if (telemetry["alt"] < self.landing_altitude_threshold) and (
+                        _sonde_state["ascent_rate"] < -2.0
+                    ):
+                        self.sondes[_id]["descending_trip"] += 1
 
-                if self.sondes[_id]["descending_trip"] > self.landing_descent_trip:
-                    # We've seen this sonde descending for enough time now.
-                    # Note that we've passed the descent threshold, so we shouldn't analyze anything from this sonde anymore.
-                    self.sondes[_id]["descent_notified"] = True
+                    if self.sondes[_id]["descending_trip"] > self.landing_descent_trip:
+                        # We've seen this sonde descending for enough time now.
+                        # Note that we've passed the descent threshold, so we shouldn't analyze anything from this sonde anymore.
+                        self.sondes[_id]["descent_notified"] = True
 
-                    self.log_debug("Sonde %s triggered descent threshold." % _id)
+                        self.log_debug("Sonde %s triggered descent threshold." % _id)
 
-                    # Let's check if it's within our notification zone.
+                        # Let's check if it's within our notification zone.
 
-                    if self.station_position != None:
-                        _relative_position = position_info(
-                            self.station_position,
-                            (telemetry["lat"], telemetry["lon"], telemetry["alt"]),
-                        )
-
-                        _range = _relative_position["straight_distance"] / 1000.0
-                        self.log_debug(
-                            "Descending sonde is %.1f km away from station location"
-                            % _range
-                        )
-
-                        if (
-                            _range < self.landing_range_threshold
-                            and self.landing_notifications
-                        ):
-                            self.log_info(
-                                "Landing sonde %s triggered range threshold." % _id
+                        if self.station_position != None:
+                            _relative_position = position_info(
+                                self.station_position,
+                                (telemetry["lat"], telemetry["lon"], telemetry["alt"]),
                             )
 
-                            msg = "Nearby sonde landing detected:\n\n"
-
-                            msg += "Callsign:  %s\n" % _id
-                            msg += "Type:      %s\n" % telemetry["type"]
-                            msg += "Frequency: %s\n" % telemetry["freq"]
-                            msg += "Position:  %.5f,%.5f\n" % (
-                                telemetry["lat"],
-                                telemetry["lon"],
-                            )
-                            msg += "Altitude:  %d m\n" % round(telemetry["alt"])
-
-                            msg += "Range:     %.1f km (Threshold: %.1fkm)\n" % (
-                                _relative_position["straight_distance"] / 1000.0,
-                                self.landing_range_threshold,
-                            )
-                            msg += "Bearing:   %d degrees True\n" % int(
-                                _relative_position["bearing"]
+                            _range = _relative_position["straight_distance"] / 1000.0
+                            self.log_debug(
+                                "Descending sonde is %.1f km away from station location"
+                                % _range
                             )
 
-                            msg += "\n"
-                            msg += "https://sondehub.org/%s\n" % strip_sonde_serial(_id)
-                            msg += (
-                                "https://sondehub.org/card/%s\n"
-                                % strip_sonde_serial(_id)
-                            )
+                            if (
+                                _range < self.landing_range_threshold
+                                and self.landing_notifications
+                            ):
+                                self.log_info(
+                                    "Landing sonde %s triggered range threshold." % _id
+                                )
 
-                            _subject = "Nearby Radiosonde Landing Detected - %s" % _id
+                                msg = "Nearby sonde landing detected:\n\n"
 
-                            self.send_notification_email(subject=_subject, message=msg)
+                                msg += "Callsign:  %s\n" % _id
+                                msg += "Type:      %s\n" % telemetry["type"]
+                                msg += "Frequency: %s\n" % telemetry["freq"]
+                                msg += "Position:  %.5f,%.5f\n" % (
+                                    telemetry["lat"],
+                                    telemetry["lon"],
+                                )
+                                msg += "Altitude:  %d m\n" % round(telemetry["alt"])
+
+                                msg += "Range:     %.1f km (Threshold: %.1fkm)\n" % (
+                                    _relative_position["straight_distance"] / 1000.0,
+                                    self.landing_range_threshold,
+                                )
+                                msg += "Bearing:   %d degrees True\n" % int(
+                                    _relative_position["bearing"]
+                                )
+
+                                msg += "\n"
+                                msg += "https://sondehub.org/%s\n" % strip_sonde_serial(_id)
+                                msg += (
+                                    "https://sondehub.org/card/%s\n"
+                                    % strip_sonde_serial(_id)
+                                )
+
+                                _subject = "Nearby Radiosonde Landing Detected - %s" % _id
+
+                                self.send_notification_email(subject=_subject, message=msg)
 
                     else:
                         # No station position to work with! Bomb out at this point
@@ -279,7 +288,7 @@ class EmailNotification(object):
     ):
         """ Generic e-mail notification function, for sending error messages. """
         try:
-            msg = "radiosonde_auto_rx Email Notification Message:\n"
+            msg = "radiosonde_auto_rx (RS41-D) Email Notification Message:\n"
             msg += "Timestamp: %s\n" % datetime.datetime.now().isoformat()
             msg += message
             msg += "\n"

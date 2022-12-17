@@ -18,6 +18,7 @@ cd ../demod/mod/
 
 rm *.o
 rm rs41mod
+rm RS41D
 rm dfm09mod
 rm rs92mod
 rm lms6mod
@@ -55,6 +56,7 @@ rm imet1rs_dft
 rm mk2a_lms1680
 rm mk2mod
 rm rs41mod
+rm RS41D
 rm rs92mod
 rm dfm09mod
 rm m10mod

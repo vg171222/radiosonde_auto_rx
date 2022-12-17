@@ -8,6 +8,7 @@
 #
 #   Copyright (C) 2021  Mark Jessop <vk5qi@rfhead.net>
 #   Released under GNU GPL v3 or later
+#   modified by vg171222
 #
 import autorx
 import datetime
@@ -110,16 +111,19 @@ class SondehubUploader(object):
             telemetry (dict): Telemetry dictionary to add to the input queue.
 
         """
+        _telem = {}
+        
+        if 'RS41-D' not in telemetry["subtype"]:
+            self.log_debug("not RS41-D so get on with it")
 
-        # Attempt to reformat the data.
-        _telem = self.reformat_data(telemetry)
-        # self.log_debug("Telem: %s" % str(_telem))
+            # Attempt to reformat the data.
+            _telem = self.reformat_data(telemetry)
 
         # Add it to the queue if we are running.
         if self.input_processing_running and _telem:
             self.input_queue.put(_telem)
         else:
-            self.log_debug("Processing not running, discarding.")
+            self.log_debug("Processing not running or RS41-D, discarding.")
 
     def reformat_data(self, telemetry):
         """ Take an input dictionary and convert it to the universal format """

@@ -448,6 +448,12 @@ def detect_sonde(
             % (str(device_idx), _score, _offset_est)
         )
         _sonde_type = "RS41"
+    elif "RS41D" in _type:
+        logging.debug(
+            "Scanner #%s - Detected a RS41D! (Score: %.2f, Offset: %.1f Hz)"
+            % (str(device_idx), _score, _offset_est)
+        )
+        _sonde_type = "RS41D"
     elif "RS92" in _type:
         logging.debug(
             "Scanner #%s - Detected a RS92! (Score: %.2f, Offset: %.1f Hz)"

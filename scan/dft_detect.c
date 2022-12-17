@@ -5,7 +5,7 @@
  *  speedup:
  *      gcc -Ofast dft_detect.c -lm -o dft_detect
  *
- *  author: zilog80
+ *  author: zilog80 code modified to RS41-D by diehardsk and vg17122
  */
 
 #include <stdio.h>
@@ -43,6 +43,11 @@ static char dfm_header[] = "10011010100110010101101001010101"; // DFM-09
 //int  vai_sps = 4800;
 static char rs41_header[] = "00001000011011010101001110001000"
                             "01000100011010010100100000011111";
+
+static char rs41d_header[] = "10010110010110010101"
+                            "10010110010110010101"
+                            "1001011001011001010110101001101001011001";
+
 static char rs92_header[] = //"10100110011001101001"
                             //"10100110011001101001"
                             "10100110011001101001"
@@ -130,6 +135,7 @@ static float set_lpIQ = 0.0;
 #define tn_RS92     4
 #define tn_M10      5
 #define tn_M20      6
+#define tn_RS41D    7
 #define tn_LMS6     8
 #define tn_MEISEI   9
 #define tn_MRZ     12
@@ -141,10 +147,10 @@ static float set_lpIQ = 0.0;
 #define tn_IMET1rs 28
 #define tn_IMET1ab 29
 
-#define Nrs         14
-#define idxIMETafsk 11
-#define idxRS       12
-#define idxI4       13
+#define Nrs         15
+#define idxIMETafsk 12
+#define idxRS       13
+#define idxI4       14
 static rsheader_t rs_hdr[Nrs] = {
     { 2500, 0, 0, dfm_header,     1.0, 0.0, 0.65, 2, NULL, "DFM9",     tn_DFM,     0, 0, 0.0, 0.0}, // DFM6: -2 ?
     { 4800, 0, 0, rs41_header,    0.5, 0.0, 0.70, 2, NULL, "RS41",     tn_RS41,    0, 0, 0.0, 0.0},
@@ -153,6 +159,7 @@ static rsheader_t rs_hdr[Nrs] = {
     { 4800, 0, 0, imet54_header,  0.5, 0.0, 0.80, 2, NULL, "IMET5",    tn_IMET5,   0, 0, 0.0, 0.0}, // (rs_hdr[idxI5])
     { 9616, 0, 0, mk2a_header,    1.0, 0.0, 0.70, 2, NULL, "MK2LMS",   tn_MK2LMS,  1, 2, 0.0, 0.0}, // Mk2a/LMS6-1680 , --IQ: decimate > 170kHz ...
     { 9608, 0, 0, m10_header,     1.0, 0.0, 0.76, 2, NULL, "M10",      tn_M10,     1, 1, 0.0, 0.0}, // M10.tn=5 (baud=9616) , M20.tn=6 (baud=9600)
+    { 4800, 0, 0, rs41d_header,    0.5, 0.0, 0.70, 2, NULL, "RS41D",     tn_RS41D,    0, 0, 0.0, 0.0},
     { 2400, 0, 0, meisei_header,  1.0, 0.0, 0.70, 2, NULL, "MEISEI",   tn_MEISEI,  0, 1, 0.0, 0.0},
     { 2400, 0, 0, mrz_header,     1.5, 0.0, 0.80, 2, NULL, "MRZ",      tn_MRZ,     0, 0, 0.0, 0.0},
     { 5800, 0, 0, c34_preheader,  1.5, 0.0, 0.80, 2, NULL, "C34C50",   tn_C34C50,  0, 1, 0.0, 0.0}, // C34/C50 2900 Hz tone

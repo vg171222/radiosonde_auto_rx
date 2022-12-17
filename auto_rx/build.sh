@@ -27,6 +27,8 @@ gcc -c demod_mod.c -w -Ofast
 gcc -c bch_ecc_mod.c -w -O3
 echo "Building RS41 demod."
 gcc rs41mod.c demod_mod.o bch_ecc_mod.o -lm -O3 -o rs41mod -w $VERS_FLAG
+echo "Building RS41D demod."
+gcc RS41D.c demod_mod.o bch_ecc_mod.o -lm -O3 -o RS41D -w $VERS_FLAG
 echo "Building DFM demod."
 gcc dfm09mod.c demod_mod.o -lm -O3 -o dfm09mod -w $VERS_FLAG
 echo "Building RS92 demod."
@@ -73,6 +75,7 @@ cp ../utils/fsk_demod .
 cp ../imet/imet1rs_dft .
 cp ../mk2a/mk2mod .
 cp ../demod/mod/rs41mod .
+cp ../demod/mod/RS41D .
 cp ../demod/mod/dfm09mod .
 cp ../demod/mod/m10mod .
 cp ../demod/mod/m20mod .
