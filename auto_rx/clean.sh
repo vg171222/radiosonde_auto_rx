@@ -21,6 +21,7 @@ rm rs41mod
 rm RS41D
 rm dfm09mod
 rm rs92mod
+rm RS92D
 rm lms6mod
 rm lms6Xmod
 rm meisei100mod
@@ -58,6 +59,7 @@ rm mk2mod
 rm rs41mod
 rm RS41D
 rm rs92mod
+rm RS92D
 rm dfm09mod
 rm m10mod
 rm mXXmod

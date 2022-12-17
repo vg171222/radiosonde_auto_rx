@@ -153,17 +153,20 @@ class EmailNotification(object):
                     if "RS41-D" in telemetry:
                         msg += "RS41-D RADIOSONDE DETECTED!\n"
 
+                    if "RS92-D" in telemetry:
+                        msg += "RS92-D RADIOSONDE DETECTED!\n"
+
                     msg += "Callsign:  %s\n" % _id
                     msg += "Type:      %s\n" % telemetry["type"]
                     msg += "Frequency: %s\n" % telemetry["freq"]
-                    if (not 'RS41-D' in telemetry):
+                    if (not 'RS41-D' in telemetry) or (not 'RS92-D' in telemetry):
                         msg += "Position:  %.5f,%.5f\n" % (
                             telemetry["lat"],
                             telemetry["lon"],
                         )
                         msg += "Altitude:  %d m\n" % round(telemetry["alt"])
 
-                    if self.station_position != None and not 'RS41-D' in telemetry:
+                    if self.station_position != None and not 'RS41-D' in telemetry and not 'RS92-D' in telemetry:
                         _relative_position = position_info(
                             self.station_position,
                             (telemetry["lat"], telemetry["lon"], telemetry["alt"]),
@@ -192,13 +195,16 @@ class EmailNotification(object):
                     if "RS41-D" in telemetry:
                         _subject += " - RS41-D SONDE "
 
+                    if "RS92-D" in telemetry:
+                        _subject += " - RS92-D SONDE "
+
                     self.send_notification_email(subject=_subject, message=msg)
 
                 except Exception as e:
                     self.log_error("Error sending E-mail - %s" % str(e))
 
         else:
-            if "RS41-D" not in telemetry:
+            if "RS41-D" not in telemetry and "RS92-D" not in telemetry:
                 # Update track data.
                 _sonde_state = self.sondes[_id]["track"].add_telemetry(
                     {
@@ -288,7 +294,7 @@ class EmailNotification(object):
     ):
         """ Generic e-mail notification function, for sending error messages. """
         try:
-            msg = "radiosonde_auto_rx (RS41-D) Email Notification Message:\n"
+            msg = "radiosonde_auto_rx (RS41-D RS92-DL) Email Notification Message:\n"
             msg += "Timestamp: %s\n" % datetime.datetime.now().isoformat()
             msg += message
             msg += "\n"

@@ -113,7 +113,7 @@ class SondehubUploader(object):
         """
         _telem = {}
         
-        if 'RS41-D' not in telemetry["subtype"]:
+        if 'RS41-D' not in telemetry["subtype"] or ('RS92-D' not in telemetry["subtype"]):
             self.log_debug("not RS41-D so get on with it")
 
             # Attempt to reformat the data.
@@ -123,7 +123,7 @@ class SondehubUploader(object):
         if self.input_processing_running and _telem:
             self.input_queue.put(_telem)
         else:
-            self.log_debug("Processing not running or RS41-D, discarding.")
+            self.log_debug("Processing not running or RS41-D or RS92-D, discarding.")
 
     def reformat_data(self, telemetry):
         """ Take an input dictionary and convert it to the universal format """

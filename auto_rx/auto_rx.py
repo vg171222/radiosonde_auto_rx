@@ -479,7 +479,7 @@ def telemetry_filter(telemetry):
     global config
 
     # First Check: zero lat/lon
-    if (telemetry["lat"] == 0.0) and (telemetry["lon"] == 0.0) and (not telemetry["type"] == "RS41-D"):
+    if (telemetry["lat"] == 0.0) and (telemetry["lon"] == 0.0) and (not telemetry["type"] == "RS41-D") and (not telemetry["type"] == "RS92-D"):
         logging.warning(
             "Zero Lat/Lon. Sonde %s does not have GPS lock." % telemetry["id"]
         )
@@ -495,7 +495,7 @@ def telemetry_filter(telemetry):
         return False
 
     # Third check: Number of satellites visible.
-    if "sats" in telemetry and not (telemetry["type"] == "RS41-D"):
+    if "sats" in telemetry and not (telemetry["type"] == "RS41-D") and (not telemetry["type"] == "RS92-D"):
         if telemetry["sats"] < 4:
             logging.warning(
                 "Sonde %s can only see %d GNSS sats - discarding position as bad."

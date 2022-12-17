@@ -463,8 +463,7 @@ class SondeDecoder(object):
                 decode_cmd += " tee decode_%s.wav |" % str(self.device_idx)
 
             decode_cmd += (
-                "./rs92mod -vx -v --crc --ecc --vel --json %s %s 2>/dev/null"
-                % (_rs92_gps_data, _ptu_opts)
+                "./RS92D -v --json 2>/dev/null"
             )
 
         elif self.sonde_type == "DFM":
@@ -1313,6 +1312,16 @@ class SondeDecoder(object):
                         self.log_debug(
                             "datetime corrected %s (Possible RS41-D)" % str(_telemetry["datetime"])
                         )
+                    elif "RS92-D" in _telemetry["subtype"]:
+                        dtvg = datetime.datetime.now(datetime.timezone.utc)
+                        _telemetry["datetime_dt"] = dtvg
+                        _telemetry["datetime"] = dtvg.strftime("%d-%m-%yT%H:%M:%S.%f")[:-3]+"Z"
+                        self.log_debug(
+                            "datetime_dt corrected %s (Possible RS92-D)" % str(_telemetry["datetime_dt"])
+                        )
+                        self.log_debug(
+                            "datetime corrected %s (Possible RS92-D)" % str(_telemetry["datetime"])
+                        )
                     else:
                         return False
 
@@ -1328,7 +1337,7 @@ class SondeDecoder(object):
 
             # Add in the sonde type field.
             if "subtype" in _telemetry:
-                if (self.sonde_type == "RS41") or (self.sonde_type == "RS41D"):
+                if (self.sonde_type == "RS41") or (self.sonde_type == "RS41D") or (self.sonde_type == "RS92"):
                     # For RS41 sondes, we are provided with a more specific subtype string (RS41-SG, RS41-SGP, RS41-SGM)
                     # in the subtype field, so we can use this directly.
                     _telemetry["type"] = _telemetry["subtype"]

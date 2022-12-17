@@ -442,7 +442,7 @@ def read_auto_rx_config(filename, no_sdr_test=False):
         auto_rx_config["experimental_decoders"] = {
             "RS41": True,
             "RS41D": False,
-            "RS92": True,
+            "RS92": False,
             "DFM": True,
             "M10": True,
             "M20": True,

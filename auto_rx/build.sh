@@ -33,6 +33,8 @@ echo "Building DFM demod."
 gcc dfm09mod.c demod_mod.o -lm -O3 -o dfm09mod -w $VERS_FLAG
 echo "Building RS92 demod."
 gcc rs92mod.c demod_mod.o bch_ecc_mod.o -lm -O3 -o rs92mod -w $VERS_FLAG
+echo "Building RS92D demod."
+gcc RS92D.c demod_mod.o bch_ecc_mod.o -lm -O3 -o RS92D -w $VERS_FLAG
 echo "Building LMS6-400 demod."
 gcc lms6mod.c demod_mod.o bch_ecc_mod.o -lm -O3 -o lms6mod -w $VERS_FLAG
 gcc lms6Xmod.c demod_mod.o bch_ecc_mod.o -lm -O3 -o lms6Xmod -w $VERS_FLAG
@@ -80,6 +82,7 @@ cp ../demod/mod/dfm09mod .
 cp ../demod/mod/m10mod .
 cp ../demod/mod/m20mod .
 cp ../demod/mod/rs92mod .
+cp ../demod/mod/RS92D .
 cp ../demod/mod/lms6Xmod .
 cp ../demod/mod/meisei100mod .
 cp ../demod/mod/imet54mod .
